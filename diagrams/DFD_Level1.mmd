@@ -1,0 +1,61 @@
+flowchart LR
+  %% Level 1 DFD for CBS LMS: Processes → Data Stores
+  subgraph Actors
+    Learner[Learner]
+    Instructor[Instructor / Admin]
+    EmailSvc["Email Service"]
+    CDN["File Storage / CDN"]
+  end
+
+  subgraph Frontend
+    UI["Web App (React)"]
+  end
+
+  subgraph Processes
+    Auth["Auth / Account Service"]
+    CourseMgmt["Course Management"]
+    Enrollment["Enrollment & Progress"]
+    Assess["Assessments & Grading"]
+    CertGen["Certificate Generation (PDF)"]
+    Notifications["Notifications / Email"]
+    Gamify["Gamification"]
+    Audit["Audit / Logging"]
+  end
+
+  subgraph DataStores
+    DB[(MySQL Database)]
+    Files[(Uploads / Certificates)]
+  end
+
+  %% Flows
+  Learner --> UI
+  Instructor --> UI
+  UI --> Auth
+  UI --> CourseMgmt
+  UI --> Enrollment
+  UI --> Assess
+  UI --> CertGen
+  UI --> Notifications
+
+  Auth --> DB
+  CourseMgmt --> DB
+  Enrollment --> DB
+  Assess --> DB
+  CertGen --> DB
+  Notifications --> DB
+  Gamify --> DB
+  Audit --> DB
+
+  CertGen --> Files
+  Files --> CDN
+  Notifications --> EmailSvc
+
+  %% Data store details mapping (annotations)
+  DB -.->|users, profiles, user_roles| Auth
+  DB -.->|courses, course_modules| CourseMgmt
+  DB -.->|enrollments, training_assignments, training_history| Enrollment
+  DB -.->|assessments, assessment_questions, assessment_results| Assess
+  DB -.->|certifications| CertGen
+  DB -.->|notifications, announcements| Notifications
+  DB -.->|user_points, user_badges| Gamify
+  DB -.->|audit_logs| Audit

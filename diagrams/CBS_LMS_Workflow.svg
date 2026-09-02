@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .page { fill: #f6f8fb; }
+      .title { font: 700 36px Arial, sans-serif; fill: #102338; }
+      .subtitle { font: 18px Arial, sans-serif; fill: #526170; }
+      .section { font: 700 17px Arial, sans-serif; fill: #243548; }
+      .box { fill: #eaf6ff; stroke: #1d75bb; stroke-width: 3; rx: 10; }
+      .box2 { fill: #fff7ed; stroke: #b45309; stroke-width: 3; rx: 10; }
+      .small { fill: #ffffff; stroke: #9aa6b2; stroke-width: 2; rx: 8; }
+      .label { font: 700 17px Arial, sans-serif; fill: #132235; text-anchor: middle; }
+      .body { font: 14px Arial, sans-serif; fill: #334155; text-anchor: middle; }
+      .dbTitle { font: 700 17px Arial, sans-serif; fill: #132235; }
+      .dbBody { font: 13px Arial, sans-serif; fill: #334155; }
+      .line { stroke: #475569; stroke-width: 3; marker-end: url(#arrow); fill: none; }
+    </style>
+  </defs>
+
+  <rect class="page" x="0" y="0" width="1600" height="980"/>
+
+  <text class="title" x="70" y="70">CBS LMS - Business Process Overview</text>
+  <text class="subtitle" x="70" y="106">A clear director-level view of how the LMS supports staff learning from course setup to certification.</text>
+
+  <text class="section" x="70" y="160">Main LMS Journey</text>
+
+  <rect class="box" x="70" y="190" width="185" height="120" rx="12"/>
+  <text class="label" x="162.5" y="228">1. Login</text>
+  <text class="body" x="162.5" y="262">User accesses</text>
+  <text class="body" x="162.5" y="284">the LMS</text>
+
+  <rect class="box2" x="300" y="190" width="185" height="120" rx="12"/>
+  <text class="label" x="392.5" y="228">2. Publish Course</text>
+  <text class="body" x="392.5" y="262">Instructor adds</text>
+  <text class="body" x="392.5" y="284">content</text>
+
+  <rect class="box" x="530" y="190" width="185" height="120" rx="12"/>
+  <text class="label" x="622.5" y="228">3. Enroll</text>
+  <text class="body" x="622.5" y="262">Learner joins</text>
+  <text class="body" x="622.5" y="284">course</text>
+
+  <rect class="box" x="760" y="190" width="185" height="120" rx="12"/>
+  <text class="label" x="852.5" y="228">4. Learn</text>
+  <text class="body" x="852.5" y="262">Complete modules</text>
+  <text class="body" x="852.5" y="284">and resources</text>
+
+  <rect class="box" x="990" y="190" width="185" height="120" rx="12"/>
+  <text class="label" x="1082.5" y="228">5. Assess</text>
+  <text class="body" x="1082.5" y="262">Quiz is</text>
+  <text class="body" x="1082.5" y="284">submitted</text>
+
+  <rect class="box" x="1220" y="190" width="185" height="120" rx="12"/>
+  <text class="label" x="1312.5" y="228">6. Complete</text>
+  <text class="body" x="1312.5" y="262">Progress and</text>
+  <text class="body" x="1312.5" y="284">history recorded</text>
+
+  <rect class="box" x="990" y="375" width="185" height="120" rx="12"/>
+  <text class="label" x="1082.5" y="413">7. Certificate</text>
+  <text class="body" x="1082.5" y="447">PDF generated</text>
+  <text class="body" x="1082.5" y="469">after passing</text>
+
+  <rect class="box" x="1220" y="375" width="185" height="120" rx="12"/>
+  <text class="label" x="1312.5" y="413">8. Report</text>
+  <text class="body" x="1312.5" y="447">Results visible</text>
+  <text class="body" x="1312.5" y="469">to system users</text>
+
+  <path class="line" d="M255 250 H292"/>
+  <path class="line" d="M485 250 H522"/>
+  <path class="line" d="M715 250 H752"/>
+  <path class="line" d="M945 250 H982"/>
+  <path class="line" d="M1175 250 H1212"/>
+  <path class="line" d="M1312 310 V367"/>
+  <path class="line" d="M1175 435 H1212"/>
+
+  <text class="section" x="70" y="570">People Who Use The System</text>
+  <rect class="small" x="70" y="600" width="250" height="80" rx="10"/>
+  <text class="label" x="195" y="632">Learner</text>
+  <text class="body" x="195" y="660">Learn, assess, get certificates</text>
+
+  <rect class="small" x="350" y="600" width="250" height="80" rx="10"/>
+  <text class="label" x="475" y="632">Instructor</text>
+  <text class="body" x="475" y="660">Create and publish training</text>
+
+  <rect class="small" x="630" y="600" width="250" height="80" rx="10"/>
+  <text class="label" x="755" y="632">Sysadmin</text>
+  <text class="body" x="755" y="660">Manage users, roles, reports</text>
+
+  <text class="section" x="70" y="735">Database Tables Used By The System</text>
+
+  <rect class="small" x="70" y="765" width="320" height="88" rx="8"/>
+  <text class="dbTitle" x="95" y="795">Users &amp; Roles</text>
+  <text class="dbBody" x="95" y="822">users, profiles, user_roles</text>
+
+  <rect class="small" x="420" y="765" width="320" height="88" rx="8"/>
+  <text class="dbTitle" x="445" y="795">Courses &amp; Modules</text>
+  <text class="dbBody" x="445" y="822">courses, course_modules, assessments</text>
+
+  <rect class="small" x="770" y="765" width="320" height="88" rx="8"/>
+  <text class="dbTitle" x="795" y="795">Learning Records</text>
+  <text class="dbBody" x="795" y="822">enrollments, results, history</text>
+
+  <rect class="small" x="1120" y="765" width="320" height="88" rx="8"/>
+  <text class="dbTitle" x="1145" y="795">Certificates &amp; Audit</text>
+  <text class="dbBody" x="1145" y="822">certifications, notifications, audit_logs</text>
+
+  <rect class="small" x="70" y="895" width="1370" height="48" rx="8"/>
+  <text class="dbBody" x="95" y="925">Plain reading: the LMS workflow is supported by database tables for users, courses, enrollments, assessments, certificates, notifications, and audit history.</text>
+</svg>

@@ -1,0 +1,58 @@
+%%{ init: { 'themeVariables': { 'fontFamily': 'Arial, Helvetica, sans-serif', 'fontSize': '14px', 'primaryColor': '#2b6cb0', 'edgeLabelBackground': '#ffffff' } } }%%
+flowchart LR
+  %% Final styled Business Process Overview (sample-like)
+  classDef title fill:#f7fafc,stroke:none,font-size:20px;
+  classDef step fill:#ffffff,stroke:#2b6cb0,stroke-width:2px,rx:10,ry:10,font-size:14px;
+  classDef stepHighlight fill:#fff7ed,stroke:#f97316,stroke-width:2px,rx:10,ry:10,font-size:14px;
+  classDef actor fill:#ffffff,stroke:#94a3b8,stroke-width:1px,rx:8,ry:8,font-size:13px;
+  classDef dbBox fill:#ffffff,stroke:#cbd5e1,stroke-width:1px,rx:6,ry:6,font-size:13px;
+
+  subgraph Title[ ]
+    direction LR
+    T(["iRecruitment System - Business Process Overview"]):::title
+  end
+
+  subgraph TopFlow
+    direction LR
+    S1(["1. Request Staff\nDepartment raises a staffing request"]):::step
+    S2(["2. Approve\nDirectors, finance, executive"]):::stepHighlight
+    S3(["3. Publish Job\nHR publishes vacancy"]):::step
+    S4(["4. Apply Online\nCandidates submit applications & CVs"]):::step
+    S5(["5. Shortlist\nHR and committee screen applications"]):::step
+    S6(["6. Interview\nInterview dates and results recorded"]):::step
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6
+  end
+
+  subgraph RightFlow
+    direction TB
+    S7(["7. Reference\nReferees submit responses"]):::step
+    S8(["8. Offer\nSelected candidate receives an offer"]):::step
+    S9(["9. Onboard\nContracts and joining documents tracked"]):::step
+    S6 --> S7
+    S7 --> S8
+    S6 --> S8
+    S8 --> S9
+  end
+
+  %% Actors
+  subgraph Actors[People Who Use The System]
+    direction LR
+    AP(["Approvers\n(Directors, finance, executive)"]):::actor
+    HR(["HR / Admin\nManage jobs & steps"]):::actor
+    CAND(["Candidates\nApply, respond, upload documents"]):::actor
+  end
+
+  %% Database boxes
+  subgraph DBs[Database Tables Used By The System]
+    direction LR
+    DB1(["Requests & Approvals\nposition_requests, position_request_approvals"]):::dbBox
+    DB2(["Jobs & Screening\njobs, job_postings, job_templates"]):::dbBox
+    DB3(["Candidates & Profiles\ncandidates, candidate_documents, profiles"]):::dbBox
+    DB4(["Applications & Interviews\napplications, interviews, assessment_* tables"]):::dbBox
+    DB5(["References & Onboarding\ncandidate_references, offers, onboarding_documents"]):::dbBox
+    DB6(["Users & Audit\nusers, user_roles, notifications, audit_logs"]):::dbBox
+  end
+
+  %% Connect groups visually
+  Actors --- TopFlow
+  TopFlow --- DBs

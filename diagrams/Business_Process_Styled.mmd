@@ -1,0 +1,60 @@
+flowchart LR
+  %% Styled Business Process Overview (matches sample layout)
+  %% Top flow (steps 1..6 left-to-right, 7..9 stacked to the right)
+  style default fill:#f7fafc,stroke:#94a3b8,stroke-width:1px
+
+  subgraph TopFlow[ ]
+    direction LR
+    S1(["1. Request Staff\nDepartment raises a staffing request"]):::step
+    S2(["2. Approve\nDirectors, finance, executive"]):::stepHighlighted
+    S3(["3. Publish Job\nHR publishes vacancy"]):::step
+    S4(["4. Apply Online\nCandidates submit applications & CVs"]):::step
+    S5(["5. Shortlist\nHR and committee screen applications"]):::step
+    S6(["6. Interview\nInterview dates and results recorded"]):::step
+
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6
+  end
+
+  subgraph RightFlow[ ]
+    direction TB
+    S7(["7. Reference\nReferees submit responses"]):::step
+    S8(["8. Offer\nSelected candidate receives an offer"]):::step
+    S9(["9. Onboard\nContracts and joining documents tracked"]):::step
+
+    S6 --> S7
+    S7 --> S8
+    S6 --> S8
+    S8 --> S9
+  end
+
+  %% Actors row
+  subgraph Actors[People Who Use The System]
+    direction LR
+    AP(["Approvers\n(Directors, finance, executive)"]):::actor
+    HR(["HR / Admin\nManage jobs & steps"]):::actor
+    CAND(["Candidates\nApply, respond, upload documents"]):::actor
+  end
+
+  %% Database table groups
+  classDef dbBox fill:#ffffff,stroke:#cbd5e1,stroke-width:1px,rx:6,ry:6;
+  subgraph DBs[Database Tables Used By The System]
+    direction LR
+    DB1(["Requests & Approvals\nposition_requests, position_request_approvals"]):::dbBox
+    DB2(["Jobs & Screening\njobs, job_postings, job_templates"]):::dbBox
+    DB3(["Candidates & Profiles\ncandidates, candidate_documents, profiles"]):::dbBox
+    DB4(["Applications & Interviews\napplications, interviews, assessment_* tables"]):::dbBox
+    DB5(["References & Onboarding\ncandidate_references, offers, onboarding_documents"]):::dbBox
+    DB6(["Users & Audit\nusers, user_roles, notifications, audit_logs"]):::dbBox
+  end
+
+  %% Connect groups visually
+  Actors --- TopFlow
+  TopFlow --- DBs
+
+  %% Styling
+  classDef step fill:#ffffff,stroke:#2b6cb0,stroke-width:2px,stroke-dasharray:0px,rx:8,ry:8,font-size:12px;
+  classDef stepHighlighted fill:#fff7ed,stroke:#f97316,stroke-width:2px,rx:8,ry:8,font-size:12px;
+  classDef actor fill:#ffffff,stroke:#94a3b8,stroke-width:1px,rx:8,ry:8,font-size:12px;
+
+  class S1,S3,S4,S5,S6,S7,S8,S9 step
+  class S2 stepHighlighted
