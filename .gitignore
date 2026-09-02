@@ -11,3 +11,5 @@ node_modules/
 *.zip
 *.rar
 *.7z
+
+lms.sql
