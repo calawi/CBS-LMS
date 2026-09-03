@@ -1,0 +1,86 @@
+name: Deploy CBS LMS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to AWS Production
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to AWS server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -e
+
+            PROJECT="/home/ubuntu/cbs_lms_project"
+
+            echo "========================================"
+            echo "CBS LMS DEPLOYMENT STARTED"
+            echo "========================================"
+
+            cd "$PROJECT"
+
+            echo "===== Current production commit ====="
+            git rev-parse HEAD || true
+
+            echo "===== Fetching latest main ====="
+            git fetch origin main
+
+            echo "===== Target commit ====="
+            git rev-parse origin/main
+
+            echo "===== Updating source code ====="
+            git checkout main
+            git reset --hard origin/main
+
+            echo "===== Verifying deployed commit ====="
+            git rev-parse HEAD
+
+            echo "===== Backend dependencies ====="
+            cd "$PROJECT/back-end"
+            npm ci --omit=dev
+
+            echo "===== Frontend dependencies ====="
+            cd "$PROJECT/front-end"
+            npm ci
+
+            echo "===== Building frontend ====="
+            npm run build
+
+            echo "===== Restarting backend ====="
+            pm2 restart cbs-lms-backend --update-env
+
+            echo "===== Restarting frontend ====="
+            pm2 restart cbs-lms-frontend --update-env
+
+            echo "===== Saving PM2 configuration ====="
+            pm2 save
+
+            echo "========================================"
+            echo "CBS LMS DEPLOYMENT COMPLETED"
+            echo "========================================"
+
+            echo "===== PM2 STATUS ====="
+            pm2 status
+
+            echo "===== DEPLOYED COMMIT ====="
+            cd "$PROJECT"
+            git rev-parse HEAD
+
+            echo "===== Production-only files check ====="
+            test -f "$PROJECT/.env" && echo ".env: OK" || echo ".env: NOT FOUND"
+            test -d "$PROJECT/uploads" && echo "uploads/: OK" || echo "uploads/: NOT FOUND"
+            test -f "$PROJECT/lms.sql" && echo "lms.sql: OK" || echo "lms.sql: NOT FOUND"
+
+            echo "========================================"
+            echo "DEPLOYMENT FINISHED SUCCESSFULLY"
+            echo "========================================"
