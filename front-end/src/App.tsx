@@ -14,6 +14,7 @@ import LmsSettings from "./pages/LmsSettings";
 import CourseDetail from "./pages/CourseDetail";
 import AdminPanel from "./pages/AdminPanel";
 import Auth from "./pages/Auth";
+import SsoCallback from "./pages/SsoCallback";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AssignTraining from "./pages/AssignTraining";
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/forgot" element={<ForgotPassword />} />
               <Route path="/auth/reset" element={<ResetPassword />} />
+              <Route path="/sso/callback" element={<SsoCallback />} />
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Index />} />
                 <Route path="/courses" element={<Courses />} />

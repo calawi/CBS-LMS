@@ -25,6 +25,7 @@ type AuthContextType = {
   register: (payload: RegisterInput) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<{ message?: string; debug_reset_link?: string }>;
   resetPassword: (token: string, password: string) => Promise<void>;
+  loginWithSso: (token: string, rawUser: unknown) => boolean;
   signOut: () => Promise<void>;
 };
 
@@ -37,6 +38,7 @@ const AuthContext = createContext<AuthContextType>({
   register: async () => {},
   requestPasswordReset: async () => ({}),
   resetPassword: async () => {},
+  loginWithSso: () => false,
   signOut: async () => {},
 });
 
@@ -189,6 +191,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!res.ok) throw new Error(await normalizeError(res, "Reset failed"));
   };
 
+  /** Called by SsoCallback.tsx after miniOrange -> LMS SAML round trip succeeds. */
+  const loginWithSso = (nextToken: string, rawUser: unknown): boolean => {
+    const nextUser = toSafeUser(rawUser);
+    if (!nextToken || !nextUser) return false;
+    persistSession(nextToken, nextUser);
+    return true;
+  };
+
   const signOut = async () => {
     setToken(null);
     setUser(null);
@@ -207,6 +217,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         register,
         requestPasswordReset,
         resetPassword,
+        loginWithSso,
         signOut,
       }}
     >

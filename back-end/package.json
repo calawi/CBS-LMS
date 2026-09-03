@@ -13,6 +13,7 @@
     "clear-certificate-cache": "node scripts/clearCertificateCache.js"
   },
   "dependencies": {
+    "@node-saml/passport-saml": "^5.1.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -23,6 +24,7 @@
     "mysql2": "^3.11.0",
     "nodemailer": "^9.0.5",
     "otplib": "^12.0.1",
+    "passport": "^0.7.0",
     "pdfkit": "^0.16.0",
     "puppeteer": "^22.0.0",
     "swagger-jsdoc": "^6.2.8",

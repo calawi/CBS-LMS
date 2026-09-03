@@ -12,6 +12,10 @@ node_modules/
 *.rar
 *.7z
 
+*.pem
+*.key
+*.crt
+
 lms.sql
 
 front-end/dist/

@@ -56,7 +56,7 @@ const buildPasswordResetHtml = (link) =>
     `,
   });
 
-const issueAuthToken = async (userRow) => {
+export const issueAuthToken = async (userRow) => {
   const roles = await getUserRoles(userRow.id);
   const safeRoles = roles.length ? roles : ["learner"];
   const token = jwt.sign({ sub: userRow.id, roles: safeRoles }, getJwtSecret(), {

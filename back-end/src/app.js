@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import { setupSwagger } from "./swagger.js";
 
 import { authRouter } from "./routes/auth.js";
+import { ssoRouter } from "./routes/sso.js";
 import { healthRouter } from "./routes/health.js";
 import { departmentsRouter } from "./routes/departments.js";
 import { coursesRouter } from "./routes/courses.js";
@@ -16,7 +17,15 @@ import { lmsRouter } from "./routes/lms.js";
 import { brandingRouter } from "./routes/branding.js";
 import { notificationsRouter } from "./routes/notifications.js";
 
+import { passport, configureSamlPassport } from "./services/sso/saml.js";
+
 export const app = express();
+
+const samlReady = configureSamlPassport();
+if (!samlReady) {
+  console.warn("[sso] SAML is not configured - set SAML_ENTRY_POINT, SAML_SP_ENTITY_ID/SAML_ISSUER and SAML_CERT in .env");
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -26,13 +35,15 @@ app.use(
     crossOriginResourcePolicy: { policy: "cross-origin" },
   }),
 );
+
 app.use(express.json({ limit: "1mb" }));
+app.use(passport.initialize());
 
 app.use(
   cors({
     origin: process.env.CLIENT_ORIGIN || "*",
     credentials: true,
-  })
+  }),
 );
 
 app.get("/", (req, res) => {
@@ -44,7 +55,10 @@ app.use("/uploads", express.static(path.resolve(__dirname, "../uploads")));
 setupSwagger(app);
 
 app.use("/api/health", healthRouter);
+
 app.use("/api/auth", authRouter);
+app.use("/api/auth/sso", ssoRouter);
+
 app.use("/api/departments", departmentsRouter);
 app.use("/api/courses", coursesRouter);
 app.use("/api/certificates", certificatesRouter);
@@ -52,4 +66,3 @@ app.use("/api/approvals", approvalsRouter);
 app.use("/api/lms", lmsRouter);
 app.use("/api/branding", brandingRouter);
 app.use("/api/notifications", notificationsRouter);
-

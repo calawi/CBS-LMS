@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CBS Staff LMS — SAML 2.0 SSO Configuration Request</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Arial, sans-serif; color: #222; max-width: 860px; margin: 40px auto; padding: 0 20px; line-height: 1.5; }
+  h1 { color: #4d91d9; font-size: 22px; border-bottom: 2px solid #4d91d9; padding-bottom: 10px; }
+  h2 { color: #333; font-size: 17px; margin-top: 32px; }
+  h3 { color: #555; font-size: 14px; margin-top: 20px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; font-size: 13px; vertical-align: top; }
+  th { background: #eef4fb; color: #333; }
+  code { background: #f2f2f2; padding: 1px 5px; border-radius: 3px; font-size: 12.5px; }
+  pre { background: #f6f6f6; border: 1px solid #ddd; border-radius: 4px; padding: 10px 14px; font-size: 12.5px; overflow-x: auto; }
+  .meta { color: #666; font-size: 13px; margin-bottom: 24px; }
+  .note { background: #fff8e1; border: 1px solid #f0d98c; border-radius: 4px; padding: 10px 14px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>CBS Staff LMS — SAML 2.0 SSO Configuration Request</h1>
+<p class="meta">
+  <strong>To:</strong> CBS Identity Team (miniOrange)<br>
+  <strong>From:</strong> CBS Staff LMS project team<br>
+  <strong>Re:</strong> Register CBS Staff LMS as a SAML 2.0 Service Provider
+</p>
+
+<h2>Overview</h2>
+<p>
+  This document requests SAML 2.0 Single Sign-On (SSO) configuration for the <strong>CBS Staff LMS</strong>
+  application, following the same SAML onboarding process already used for other CBS applications
+  integrated with miniOrange. Please generate the LMS metadata the same way.
+</p>
+
+<h2>1. LMS Application Configuration Details (provided to miniOrange)</h2>
+<p>The following details should be registered in the CBS Identity Provider for CBS Staff LMS.</p>
+<table>
+  <tr><th>Configuration Detail</th><th>Value</th></tr>
+  <tr><td>Protocol</td><td>SAML 2.0</td></tr>
+  <tr><td>Application Name</td><td>CBS Staff LMS</td></tr>
+  <tr><td>Entity ID</td><td><code>https://lms.centralbank.gov.so/api/auth/sso/metadata</code></td></tr>
+  <tr><td>Base URL</td><td><code>https://lms.centralbank.gov.so</code></td></tr>
+  <tr><td>ACS URL (Reply URL)</td><td><code>https://lms.centralbank.gov.so/api/auth/sso/callback</code></td></tr>
+  <tr><td>NameID Format</td><td>Email Address (<code>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</code>) — consistent with other existing CBS SAML integrations</td></tr>
+  <tr><td>IDP Initiated SSO</td><td>YES</td></tr>
+  <tr><td>SP Initiated SSO</td><td>YES</td></tr>
+</table>
+
+<h2>2. Required from miniOrange — Identity Provider Details</h2>
+<p>The following details are required from the CBS Identity team to complete the SAML 2.0 configuration on the LMS side.</p>
+<table>
+  <tr><th>Configuration Detail</th><th>Value (to be filled by miniOrange)</th></tr>
+  <tr><td>Metadata XML File</td><td></td></tr>
+  <tr><td>Single Sign-In URL</td><td></td></tr>
+  <tr><td>Single Sign-Out URL</td><td></td></tr>
+  <tr><td>Client ID</td><td></td></tr>
+  <tr><td>Tenant ID</td><td></td></tr>
+</table>
+
+<h3>Response Attributes Required in SAML Response</h3>
+<p>Please include <strong>both</strong> of the following attributes in the SAML assertion — same attribute names already used for other existing CBS SAML integrations:</p>
+<table>
+  <tr><th>Attribute</th><th>Description</th></tr>
+  <tr><td><code>givenname</code></td><td>User's AD login ID (e.g. <code>abdirahman.hanafi</code>)</td></tr>
+  <tr><td><code>emailaddress</code></td><td>User's email address</td></tr>
+</table>
+
+<h3>Optional — only if AD-group based role assignment is wanted</h3>
+<table>
+  <tr><th>Attribute</th><th>Description</th></tr>
+  <tr><td><code>memberOf</code> / <code>groups</code></td><td>AD group membership, used to auto-assign the LMS role (instructor / manager / sysadmin). If not sent, every new SSO user defaults to the <code>learner</code> role and roles are assigned manually inside LMS afterward.</td></tr>
+</table>
+
+<h2>3. LMS login/role logic (for reference)</h2>
+<pre>Valid AD user, existing LMS account    -&gt; logs in, keeps current LMS role
+Valid AD user, no existing LMS account -&gt; rejected ("Invalid username or password")</pre>
+<p>
+  This mirrors the same model already used for ERP: the username is created in the target
+  application (LMS) first, using the same username as AD/miniOrange, and only a user that
+  already exists there is allowed to log in. LMS does not create new accounts on its own from an
+  AD login alone — the sysadmin creates the LMS account (Employee ID = AD username) ahead of the
+  employee's first SSO attempt.
+</p>
+<div class="note">
+  AD/miniOrange remains the only party that checks the password; LMS only checks that the
+  username already exists in its own records.
+</div>
+
+</body>
+</html>
