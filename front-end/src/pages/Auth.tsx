@@ -99,7 +99,7 @@ const Auth = () => {
     mode === "sso" ? "Sign In with your credentials" : needsMfa ? "Verify your identity" : isLogin ? "Sign In with your credentials" : "Create your account";
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#eef0f6] px-4">
+    <div className="min-h-screen flex flex-col items-center bg-[#eef0f6] px-4 pt-16 sm:pt-20">
       <img src="/logo.png" alt="Central Bank of Somalia" className="mb-8 w-full max-w-[280px] object-contain" />
 
       <div className="w-full max-w-[480px]">
@@ -140,18 +140,6 @@ const Auth = () => {
                     </Button>
                   </div>
                 </form>
-                <p className="mt-4 text-center text-[11px] text-[#8a8a8a]">
-                  You'll be taken to the CBS identity provider to sign in.
-                </p>
-                <div className="mt-5 text-center">
-                  <button
-                    type="button"
-                    onClick={() => setMode("local")}
-                    className="text-[12px] text-[#7f8a99] hover:underline"
-                  >
-                    Sign in with local password instead
-                  </button>
-                </div>
               </>
             ) : (
               <>
@@ -282,10 +270,6 @@ const Auth = () => {
                 )}
               </>
             )}
-
-            <div className="mt-6 border-t border-[#e6e6e6] pt-3 text-center text-[10px] text-[#8a8a8a]">
-              All rights reserved © Central Bank of Somalia
-            </div>
           </CardContent>
         </Card>
       </div>
