@@ -239,6 +239,7 @@ export const useCreateUser = () => {
       password: string;
       full_name: string;
       role: string;
+      username?: string;
       employee_id?: string;
       job_title?: string;
       department_id?: string;

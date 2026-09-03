@@ -69,35 +69,51 @@ const findUserForLogin = async (identifierRaw) => {
   const trimmed = String(identifierRaw || "").trim();
   if (!trimmed) return null;
   const emailLower = trimmed.toLowerCase();
+
+  // users.username is the AD/miniOrange login name (distinct from profiles.employee_id, which is
+  // the internal CBS employee code). Try matching against it first; if the column hasn't been
+  // added yet (run back-end/sql/add_users_username.sql), fall back to email/employee_id only.
+  const withUsername = `
+    SELECT u.id, u.email, u.password_hash, u.full_name, COALESCE(u.mfa_enabled, 0) AS mfa_enabled, u.mfa_secret
+    FROM users u
+    LEFT JOIN profiles p ON p.user_id = u.id
+    WHERE (LOWER(TRIM(u.email)) = ? AND u.email IS NOT NULL)
+       OR (u.username IS NOT NULL AND LOWER(TRIM(u.username)) = ?)
+       OR (p.employee_id IS NOT NULL AND LOWER(TRIM(p.employee_id)) = ?)
+    LIMIT 1
+  `;
+  const withoutUsername = `
+    SELECT u.id, u.email, u.password_hash, u.full_name, COALESCE(u.mfa_enabled, 0) AS mfa_enabled, u.mfa_secret
+    FROM users u
+    LEFT JOIN profiles p ON p.user_id = u.id
+    WHERE (LOWER(TRIM(u.email)) = ? AND u.email IS NOT NULL)
+       OR (p.employee_id IS NOT NULL AND LOWER(TRIM(p.employee_id)) = ?)
+    LIMIT 1
+  `;
+  const withoutMfaCols = `
+    SELECT u.id, u.email, u.password_hash, u.full_name, 0 AS mfa_enabled, NULL AS mfa_secret
+    FROM users u
+    LEFT JOIN profiles p ON p.user_id = u.id
+    WHERE (LOWER(TRIM(u.email)) = ? AND u.email IS NOT NULL)
+       OR (p.employee_id IS NOT NULL AND LOWER(TRIM(p.employee_id)) = ?)
+    LIMIT 1
+  `;
+
+  const isMissingColumn = (err) => err?.code === "ER_BAD_FIELD_ERROR" || err?.code === "ER_NO_SUCH_COLUMN";
+
   try {
-    const [rows] = await pool.query(
-      `
-        SELECT u.id, u.email, u.password_hash, u.full_name, COALESCE(u.mfa_enabled, 0) AS mfa_enabled, u.mfa_secret
-        FROM users u
-        LEFT JOIN profiles p ON p.user_id = u.id
-        WHERE (LOWER(TRIM(u.email)) = ? AND u.email IS NOT NULL)
-           OR (p.employee_id IS NOT NULL AND TRIM(p.employee_id) = ?)
-        LIMIT 1
-      `,
-      [emailLower, trimmed],
-    );
+    const [rows] = await pool.query(withUsername, [emailLower, emailLower, emailLower]);
     return rows[0] || null;
   } catch (err) {
-    if (err?.code !== "ER_BAD_FIELD_ERROR" && err?.code !== "ER_NO_SUCH_COLUMN") {
-      throw err;
+    if (!isMissingColumn(err)) throw err;
+    try {
+      const [rows] = await pool.query(withoutUsername, [emailLower, emailLower]);
+      return rows[0] || null;
+    } catch (err2) {
+      if (!isMissingColumn(err2)) throw err2;
+      const [rows] = await pool.query(withoutMfaCols, [emailLower, emailLower]);
+      return rows[0] || null;
     }
-    const [rows] = await pool.query(
-      `
-        SELECT u.id, u.email, u.password_hash, u.full_name, 0 AS mfa_enabled, NULL AS mfa_secret
-        FROM users u
-        LEFT JOIN profiles p ON p.user_id = u.id
-        WHERE (LOWER(TRIM(u.email)) = ? AND u.email IS NOT NULL)
-           OR (p.employee_id IS NOT NULL AND TRIM(p.employee_id) = ?)
-        LIMIT 1
-      `,
-      [emailLower, trimmed],
-    );
-    return rows[0] || null;
   }
 };
 

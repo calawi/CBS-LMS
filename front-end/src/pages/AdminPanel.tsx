@@ -79,6 +79,7 @@ const AdminPanel = () => {
     email: "",
     password: "",
     role: "learner" as AppRole,
+    username: "",
     employee_id: "",
     job_title: "",
     department_id: "",
@@ -166,6 +167,7 @@ const AdminPanel = () => {
         email: "",
         password: "",
         role: "learner",
+        username: "",
         employee_id: "",
         job_title: "",
         department_id: "",
@@ -389,6 +391,14 @@ const AdminPanel = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label>Username (AD / SSO login name)</Label>
+                  <Input
+                    value={newUser.username}
+                    onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                    placeholder="e.g. abdirahman.hanafi"
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label>Employee ID</Label>
                   <Input value={newUser.employee_id} onChange={(e) => setNewUser({ ...newUser, employee_id: e.target.value })} />
                 </div>
@@ -463,6 +473,7 @@ const AdminPanel = () => {
                     <TableHeader>
                       <TableRow className="[&_th]:font-bold [&_th]:text-foreground">
                         <TableHead>User</TableHead>
+                        <TableHead>Username</TableHead>
                         <TableHead>Employee ID</TableHead>
                         <TableHead>Job Title</TableHead>
                         <TableHead>Department</TableHead>
@@ -486,6 +497,7 @@ const AdminPanel = () => {
                                 </div>
                               </div>
                             </TableCell>
+                            <TableCell className="text-sm">{profile.user_username || "-"}</TableCell>
                             <TableCell className="text-sm">{profile.employee_id || "-"}</TableCell>
                             <TableCell className="text-sm">{profile.job_title || "-"}</TableCell>
                             <TableCell className="text-sm">{profile.departments?.name || "-"}</TableCell>

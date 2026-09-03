@@ -1608,26 +1608,47 @@ lmsRouter.get("/training-history", requireAuth(["sysadmin", "instructor", "manag
 // Profiles
 // -----------------------------
 lmsRouter.get("/profiles", requireAuth(), async (req, res) => {
-  const [rows] = await pool.query(
-    `
-      SELECT
-        p.*,
-        d.id AS d_id,
-        d.name AS d_name,
-        u.email AS user_email
-      FROM profiles p
-      LEFT JOIN departments d ON d.id = p.department_id
-      LEFT JOIN users u ON u.id = p.user_id
-      ORDER BY p.full_name ASC
-    `,
-  );
+  let rows;
+  try {
+    [rows] = await pool.query(
+      `
+        SELECT
+          p.*,
+          d.id AS d_id,
+          d.name AS d_name,
+          u.email AS user_email,
+          u.username AS user_username
+        FROM profiles p
+        LEFT JOIN departments d ON d.id = p.department_id
+        LEFT JOIN users u ON u.id = p.user_id
+        ORDER BY p.full_name ASC
+      `,
+    );
+  } catch (err) {
+    if (err?.code !== "ER_BAD_FIELD_ERROR" && err?.code !== "ER_NO_SUCH_COLUMN") throw err;
+    // users.username not added yet - run back-end/sql/add_users_username.sql.
+    [rows] = await pool.query(
+      `
+        SELECT
+          p.*,
+          d.id AS d_id,
+          d.name AS d_name,
+          u.email AS user_email
+        FROM profiles p
+        LEFT JOIN departments d ON d.id = p.department_id
+        LEFT JOIN users u ON u.id = p.user_id
+        ORDER BY p.full_name ASC
+      `,
+    );
+  }
 
   const data = rows.map((r) => {
-    const { d_id, d_name, user_email, ...profile } = r;
+    const { d_id, d_name, user_email, user_username, ...profile } = r;
     return {
       ...profile,
       departments: d_id ? { id: d_id, name: d_name } : null,
       user_email: user_email || null,
+      user_username: user_username || null,
     };
   });
   return res.json({ data });
@@ -2100,6 +2121,7 @@ lmsRouter.post("/users", requireAuth(["sysadmin"]), async (req, res) => {
     password,
     full_name,
     role = "learner",
+    username,
     employee_id,
     job_title,
     department_id,
@@ -2113,6 +2135,7 @@ lmsRouter.post("/users", requireAuth(["sysadmin"]), async (req, res) => {
   }
 
   const normalizedEmail = String(email).trim().toLowerCase();
+  const normalizedUsername = normalizeOptionalString(username)?.toLowerCase() || null;
   const normalizedRole = role === "admin" ? "sysadmin" : role === "employee" ? "learner" : String(role || "").trim();
   if (!ROLE_WHITELIST.has(normalizedRole)) {
     return res.status(400).json({ error: "Invalid role. Allowed: sysadmin, instructor, manager, learner" });
@@ -2129,10 +2152,19 @@ lmsRouter.post("/users", requireAuth(["sysadmin"]), async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(String(password), 10);
-    const [userResult] = await conn.query(
-      "INSERT INTO users (email, password_hash, full_name, role, is_active) VALUES (?, ?, ?, ?, ?)",
-      [normalizedEmail, passwordHash, String(full_name).trim(), normalizedRole, 1],
-    );
+    let userResult;
+    try {
+      [userResult] = await conn.query(
+        "INSERT INTO users (email, username, password_hash, full_name, role, is_active) VALUES (?, ?, ?, ?, ?, ?)",
+        [normalizedEmail, normalizedUsername, passwordHash, String(full_name).trim(), normalizedRole, 1],
+      );
+    } catch (err) {
+      if (err?.code !== "ER_BAD_FIELD_ERROR" && err?.code !== "ER_NO_SUCH_COLUMN") throw err;
+      await conn.rollback();
+      return res.status(503).json({
+        error: "users.username column missing. Run back-end/sql/add_users_username.sql, then retry.",
+      });
+    }
     const userId = userResult.insertId;
 
     await conn.query(
@@ -2176,6 +2208,7 @@ lmsRouter.post("/users", requireAuth(["sysadmin"]), async (req, res) => {
       data: {
         id: userId,
         email: normalizedEmail,
+        username: normalizedUsername,
         full_name: String(full_name).trim(),
         role: normalizedRole,
         role_id: roleResult.insertId,

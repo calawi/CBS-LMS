@@ -161,32 +161,50 @@ const autoCreateSsoUsers = () =>
   ["1", "true", "yes", "on"].includes(String(process.env.SSO_AUTO_CREATE_USERS || "false").trim().toLowerCase());
 
 export const findLmsUserBySsoIdentifier = async ({ email, username }) => {
-  const params = [];
-  const conditions = [];
-  if (email) {
-    conditions.push("LOWER(TRIM(u.email)) = ?");
-    params.push(email);
+  const buildQuery = (includeUsernameColumn) => {
+    const params = [];
+    const conditions = [];
+    if (email) {
+      conditions.push("LOWER(TRIM(u.email)) = ?");
+      params.push(email);
+    }
+    if (username) {
+      if (includeUsernameColumn) {
+        conditions.push("(u.username IS NOT NULL AND LOWER(TRIM(u.username)) = ?)");
+        params.push(username);
+      }
+      conditions.push("LOWER(SUBSTRING_INDEX(TRIM(u.email), '@', 1)) = ?");
+      conditions.push("LOWER(TRIM(p.employee_id)) = ?");
+      params.push(username, username);
+    }
+    if (!conditions.length) return null;
+    return {
+      sql: `
+        SELECT u.id, u.email, u.full_name, u.role, u.is_active
+        FROM users u
+        LEFT JOIN profiles p ON p.user_id = u.id
+        WHERE ${conditions.join(" OR ")}
+        LIMIT 1
+      `,
+      params,
+    };
+  };
+
+  // users.username is the AD/miniOrange login name (distinct from profiles.employee_id, which is
+  // the internal CBS employee code). Try matching against it first; if the column hasn't been
+  // added yet (run back-end/sql/add_users_username.sql), fall back to email/employee_id only.
+  const primary = buildQuery(true);
+  if (!primary) return null;
+
+  try {
+    const [rows] = await pool.query(primary.sql, primary.params);
+    return rows[0] || null;
+  } catch (err) {
+    if (err?.code !== "ER_BAD_FIELD_ERROR" && err?.code !== "ER_NO_SUCH_COLUMN") throw err;
+    const fallback = buildQuery(false);
+    const [rows] = await pool.query(fallback.sql, fallback.params);
+    return rows[0] || null;
   }
-  if (username) {
-    conditions.push("LOWER(SUBSTRING_INDEX(TRIM(u.email), '@', 1)) = ?");
-    conditions.push("LOWER(TRIM(p.employee_id)) = ?");
-    params.push(username, username);
-  }
-
-  if (!conditions.length) return null;
-
-  const [rows] = await pool.query(
-    `
-      SELECT u.id, u.email, u.full_name, u.role, u.is_active
-      FROM users u
-      LEFT JOIN profiles p ON p.user_id = u.id
-      WHERE ${conditions.join(" OR ")}
-      LIMIT 1
-    `,
-    params,
-  );
-
-  return rows[0] || null;
 };
 
 export const roleFromSamlGroups = (groups) => {
