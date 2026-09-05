@@ -37,6 +37,25 @@ ssoRouter.get("/login", (req, res, next) => {
   return passport.authenticate("saml", { session: false })(req, res, next);
 });
 
+// Temporary diagnostic aid for the "Invalid signature" issue - logs the raw SAML response
+// miniOrange actually sent so it can be inspected directly instead of guessing. Gated behind an
+// env flag since it's verbose and the payload contains identity attributes. Remove once the
+// signature issue is resolved with miniOrange.
+const logRawSamlResponseIfEnabled = (req) => {
+  if (String(process.env.SSO_DEBUG_LOG || "").toLowerCase() !== "true") return;
+  try {
+    const raw = req.body?.SAMLResponse;
+    if (!raw) {
+      console.info("[sso/callback][debug] POST received with no SAMLResponse field in the body");
+      return;
+    }
+    const xml = Buffer.from(raw, "base64").toString("utf8");
+    console.info("[sso/callback][debug] Raw SAMLResponse XML:\n" + xml);
+  } catch (e) {
+    console.error("[sso/callback][debug] Failed to decode SAMLResponse for logging:", e.message);
+  }
+};
+
 /**
  * ACS endpoint miniOrange posts the SAML response back to after AD + MFA succeed.
  */
@@ -45,9 +64,14 @@ ssoRouter.post("/callback", express.urlencoded({ extended: false }), (req, res, 
     return res.redirect(`${clientOrigin()}/auth?error=sso_not_configured`);
   }
 
+  logRawSamlResponseIfEnabled(req);
+
   passport.authenticate("saml", { session: false }, async (err, profile) => {
     if (err || !profile) {
       console.error("[sso/callback] SAML authentication failed:", err?.message || "no profile returned");
+      if (err && String(process.env.SSO_DEBUG_LOG || "").toLowerCase() === "true") {
+        console.error("[sso/callback][debug] Full error:", err);
+      }
       return res.redirect(`${clientOrigin()}/auth?error=sso_failed`);
     }
 
