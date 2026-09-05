@@ -131,7 +131,14 @@ ssoRouter.post("/logout", requireAuth(), (req, res) => {
     return res.json({ logoutUrl: null });
   }
 
-  strategy.logout({ user: ssoSession, query: {}, body: {} }, (err, url) => {
+  // RelayState asks miniOrange to redirect the browser back here once it's done processing the
+  // LogoutRequest, instead of its own default post-logout page (currently broken - it redirects
+  // to a :80 URL that times out). This is a standard, optional SAML parameter - if miniOrange's
+  // broker doesn't honor it, nothing changes: the logout itself already works either way, this
+  // only affects where the browser lands afterward.
+  const relayState = `${clientOrigin()}/auth`;
+
+  strategy.logout({ user: ssoSession, query: { RelayState: relayState }, body: {} }, (err, url) => {
     if (err) {
       console.error("[sso/logout] failed to build logout URL:", err.message);
       return res.json({ logoutUrl: null });
