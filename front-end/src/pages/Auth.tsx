@@ -50,6 +50,14 @@ const Auth = () => {
     window.location.href = `${API_URL}/api/auth/sso/login`;
   };
 
+  // Used from the local-fallback form after a rejected/failed SSO login. Hits a separate
+  // forceAuthn entry point so miniOrange re-prompts for credentials instead of silently
+  // reusing the still-active broker session for the same (rejected) account - a plain
+  // goToSso() here could otherwise bounce the user back and forth with no way out.
+  const goToSsoRetry = () => {
+    window.location.href = `${API_URL}/api/auth/sso/login-retry`;
+  };
+
   useEffect(() => {
     // Auto-redirect straight to miniOrange on load, same as suptech.centralbank.gov.so does -
     // no click needed for a normal, first-time visit. Skip this if a failed-SSO error just
@@ -153,6 +161,22 @@ const Auth = () => {
               </>
             ) : (
               <>
+                {!needsMfa && (
+                  <div className="mb-4 space-y-3">
+                    <Button
+                      type="button"
+                      onClick={goToSsoRetry}
+                      className="h-11 w-full rounded-md border border-[#1d5fd1] bg-white text-[#1d5fd1] hover:bg-[#eef3fc]"
+                    >
+                      Try signing in with a different AD account
+                    </Button>
+                    <div className="flex items-center gap-3 text-xs text-[#9aa3b2]">
+                      <div className="h-px flex-1 bg-[#e6e6e6]" />
+                      <span>or use your local password</span>
+                      <div className="h-px flex-1 bg-[#e6e6e6]" />
+                    </div>
+                  </div>
+                )}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {needsMfa ? (
                     <>

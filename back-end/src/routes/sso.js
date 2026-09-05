@@ -39,6 +39,18 @@ ssoRouter.get("/login", (req, res, next) => {
   return passport.authenticate("saml", { session: false })(req, res, next);
 });
 
+/**
+ * "Try a different AD account" entry point, shown after a rejected/failed SSO login. Uses the
+ * forceAuthn strategy so miniOrange re-prompts for credentials instead of silently reusing the
+ * still-active broker session for the same (rejected) account - see saml.js for why that matters.
+ */
+ssoRouter.get("/login-retry", (req, res, next) => {
+  if (!isSamlConfigured()) {
+    return res.status(503).json({ error: "SSO is not configured. Set SAML_ENTRY_POINT, SAML_SP_ENTITY_ID and SAML_CERT." });
+  }
+  return passport.authenticate("saml-retry", { session: false })(req, res, next);
+});
+
 // Temporary diagnostic aid for the "Invalid signature" issue - logs the raw SAML response
 // miniOrange actually sent so it can be inspected directly instead of guessing. Gated behind an
 // env flag since it's verbose and the payload contains identity attributes. Remove once the

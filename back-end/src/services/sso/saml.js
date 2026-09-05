@@ -254,10 +254,24 @@ let samlStrategyInstance = null;
 
 export const configureSamlPassport = () => {
   if (!isSamlConfigured()) return false;
-  samlStrategyInstance = new SamlStrategy(getSamlConfig(), (profile, done) => {
+  const baseConfig = getSamlConfig();
+
+  samlStrategyInstance = new SamlStrategy(baseConfig, (profile, done) => {
     done(null, getSamlProfile(profile));
   });
   passport.use("saml", samlStrategyInstance);
+
+  // Second strategy, used only by the "Try a different AD account" retry entry point
+  // (GET /api/auth/sso/login-retry) after a rejected/failed SSO login. forceAuthn makes
+  // miniOrange show its credential prompt again instead of silently reusing the still-active
+  // broker session for the same (rejected) account - without it, a naive retry redirect can
+  // loop forever between the LMS and miniOrange for a user whose AD account just isn't
+  // registered in the LMS. It has no effect on validating the response at /callback, so the
+  // "saml" strategy above is used for that regardless of which strategy started the request.
+  passport.use("saml-retry", new SamlStrategy({ ...baseConfig, forceAuthn: true }, (profile, done) => {
+    done(null, getSamlProfile(profile));
+  }));
+
   return true;
 };
 
