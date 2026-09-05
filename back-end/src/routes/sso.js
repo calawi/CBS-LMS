@@ -5,8 +5,10 @@ import {
   getServiceProviderMetadata,
   findOrCreateSsoUser,
   findLmsUserBySsoIdentifier,
+  getSamlStrategy,
 } from "../services/sso/saml.js";
 import { issueAuthToken } from "./auth.js";
+import { requireAuth } from "../middleware/auth.js";
 
 export const ssoRouter = express.Router();
 
@@ -77,7 +79,22 @@ ssoRouter.post("/callback", express.urlencoded({ extended: false }), (req, res, 
 
     try {
       const user = await findOrCreateSsoUser(profile);
-      const { token, user: safeUser } = await issueAuthToken(user);
+
+      // Carry the SAML session identifiers through to the JWT so a later call to
+      // /api/auth/sso/logout can build a LogoutRequest without needing server-side session
+      // storage. profile.raw is node-saml's own parsed profile object.
+      const rawProfile = profile.raw || {};
+      const ssoClaims = rawProfile.nameID
+        ? {
+            sso: {
+              nameID: rawProfile.nameID,
+              nameIDFormat: rawProfile.nameIDFormat,
+              sessionIndex: rawProfile.sessionIndex,
+            },
+          }
+        : {};
+
+      const { token, user: safeUser } = await issueAuthToken(user, ssoClaims);
       const encodedUser = base64url(safeUser);
       return res.redirect(`${clientOrigin()}/sso/callback#token=${encodeURIComponent(token)}&user=${encodedUser}`);
     } catch (e) {
@@ -85,6 +102,30 @@ ssoRouter.post("/callback", express.urlencoded({ extended: false }), (req, res, 
       return res.redirect(`${clientOrigin()}/auth?error=${encodeURIComponent(e.message || "sso_failed")}`);
     }
   })(req, res, next);
+});
+
+/**
+ * Called by the "Sign out" button before clearing the local session. If the caller logged in via
+ * SSO, builds a SAML LogoutRequest redirect URL so miniOrange's own broker session ends too -
+ * without this, clearing only the LMS's local token leaves the user's miniOrange/AD session
+ * alive, so a later visit to /auth silently re-authenticates them without prompting again.
+ * Returns { logoutUrl: null } for local-password logins (nothing to do on miniOrange's side).
+ */
+ssoRouter.post("/logout", requireAuth(), (req, res) => {
+  const strategy = getSamlStrategy();
+  const ssoSession = req.user?.sso;
+
+  if (!strategy || !ssoSession?.nameID) {
+    return res.json({ logoutUrl: null });
+  }
+
+  strategy.logout({ user: ssoSession, query: {}, body: {} }, (err, url) => {
+    if (err) {
+      console.error("[sso/logout] failed to build logout URL:", err.message);
+      return res.json({ logoutUrl: null });
+    }
+    return res.json({ logoutUrl: url });
+  });
 });
 
 /**

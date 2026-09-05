@@ -70,10 +70,13 @@ const buildPasswordResetHtml = (link) =>
     `,
   });
 
-export const issueAuthToken = async (userRow) => {
+// extraClaims currently only carries `{ sso: { nameID, nameIDFormat, sessionIndex } }` for
+// SSO-originated logins, so /api/auth/sso/logout can later build a SAML LogoutRequest without
+// needing server-side session storage.
+export const issueAuthToken = async (userRow, extraClaims = {}) => {
   const roles = await getUserRoles(userRow.id);
   const safeRoles = roles.length ? roles : ["learner"];
-  const token = jwt.sign({ sub: userRow.id, roles: safeRoles }, getJwtSecret(), {
+  const token = jwt.sign({ sub: userRow.id, roles: safeRoles, ...extraClaims }, getJwtSecret(), {
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   });
   return { token, user: { id: userRow.id, email: userRow.email, full_name: userRow.full_name, roles: safeRoles } };

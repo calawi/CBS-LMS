@@ -200,10 +200,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    // If this was an SSO login, ask the backend for a Single Logout redirect URL *before*
+    // clearing the local token (the request needs to be authenticated). Otherwise sign-out only
+    // ends the LMS's own session - the miniOrange/AD session stays alive, and the auto-redirect
+    // on /auth would silently log the user back in without prompting for credentials again.
+    let logoutUrl: string | null = null;
+    if (token) {
+      try {
+        const res = await fetch(`${API_URL}/api/auth/sso/logout`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const body = await res.json().catch(() => ({}));
+          logoutUrl = typeof body?.logoutUrl === "string" ? body.logoutUrl : null;
+        }
+      } catch {
+        // Backend unreachable - fall back to a local-only sign-out below.
+      }
+    }
+
     setToken(null);
     setUser(null);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+
+    if (logoutUrl) {
+      window.location.href = logoutUrl;
+    }
   };
 
   return (

@@ -76,6 +76,12 @@ export const getSamlConfig = () => {
     // actual Response signature is valid. The Response signature already covers the assertion
     // content, so this is a legitimate configuration, not a security downgrade.
     wantAssertionsSigned: false,
+    // Single Logout endpoint published in miniOrange's IdP metadata for this broker app
+    // (<md:SingleLogoutService>). Without this, node-saml falls back to sending LogoutRequests
+    // to the *login* entryPoint, which miniOrange won't accept as a logout. Sign-out only ends
+    // the LMS's own session unless this is set - the AD/miniOrange session stays alive and a
+    // fresh SSO redirect will silently re-authenticate the user without prompting again.
+    logoutUrl: process.env.SAML_LOGOUT_URL || undefined,
   };
 };
 
@@ -267,15 +273,19 @@ export const findOrCreateSsoUser = async ({ email, username, fullName, groups })
   return { id: userId, email: userEmail, full_name: name, role, is_active: 1 };
 };
 
+// Held onto so routes/sso.js can call .logout() to build a Single Logout redirect URL - passport
+// itself has no API to fetch a registered strategy instance back out.
+let samlStrategyInstance = null;
+
 export const configureSamlPassport = () => {
   if (!isSamlConfigured()) return false;
-  passport.use(
-    "saml",
-    new SamlStrategy(getSamlConfig(), (profile, done) => {
-      done(null, getSamlProfile(profile));
-    }),
-  );
+  samlStrategyInstance = new SamlStrategy(getSamlConfig(), (profile, done) => {
+    done(null, getSamlProfile(profile));
+  });
+  passport.use("saml", samlStrategyInstance);
   return true;
 };
+
+export const getSamlStrategy = () => samlStrategyInstance;
 
 export { passport };

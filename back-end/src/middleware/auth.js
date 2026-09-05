@@ -42,7 +42,10 @@ export const requireAuth = (roles = null) => (req, res, next) => {
       }
     }
 
-    req.user = { userId, roles: userRoles };
+    // sso carries { nameID, nameIDFormat, sessionIndex } for SSO-originated logins only
+    // (set by issueAuthToken in routes/auth.js) - used by /api/auth/sso/logout to build a
+    // SAML LogoutRequest. Absent/null for local-password logins.
+    req.user = { userId, roles: userRoles, sso: payload.sso || null };
     return next();
   } catch (err) {
     return res.status(401).json({ error: "Invalid/expired token" });
