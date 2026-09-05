@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { KeyRound, LogOut, Settings, User } from "lucide-react";
 import {
   DropdownMenu,
@@ -32,7 +32,6 @@ const toRoleLabel = (role: string) => role.charAt(0).toUpperCase() + role.slice(
 
 const UserAccountDropdown = () => {
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
 
   const name = user?.user_metadata?.full_name || user?.full_name || "User";
   const email = user?.email || "";
@@ -41,8 +40,10 @@ const UserAccountDropdown = () => {
   const canAccessSettings = hasAnyRole(user?.roles, ["sysadmin", "instructor", "manager", "learner"]);
 
   const handleSignOut = async () => {
+    // signOut() itself does a full page redirect to the right destination now (miniOrange's
+    // logout page for SSO sessions, /local-login for local ones) - no separate navigate needed,
+    // and adding one here would race with that redirect.
     await signOut();
-    navigate("/auth", { replace: true });
   };
 
   return (

@@ -225,9 +225,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
 
-    if (logoutUrl) {
-      window.location.href = logoutUrl;
-    }
+    // Always a full page redirect (not react-router navigate) so this works regardless of where
+    // signOut() is called from. SSO sessions go through miniOrange's own logout page; local
+    // sessions go back to /local-login, NOT /auth - /auth is SSO-only and would otherwise
+    // silently reuse any still-active miniOrange broker session in this browser (from an
+    // unrelated earlier SSO login) and immediately reject it, since that's a different account
+    // than the local one that just logged out.
+    window.location.href = logoutUrl || "/local-login";
   };
 
   return (
