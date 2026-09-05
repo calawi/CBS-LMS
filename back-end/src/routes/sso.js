@@ -152,12 +152,11 @@ ssoRouter.post("/precheck", express.json(), async (req, res) => {
     }
 
     const username = String(req.body?.username || req.body?.sAMAccountName || "").trim().toLowerCase();
-    const email = String(req.body?.email || "").trim().toLowerCase();
-    if (!username && !email) {
-      return res.status(400).json({ error: "username or email is required" });
+    if (!username) {
+      return res.status(400).json({ error: "username is required" });
     }
 
-    const user = await findLmsUserBySsoIdentifier({ email, username });
+    const user = await findLmsUserBySsoIdentifier({ username });
     const allowed = Boolean(user) && Number(user?.is_active) !== 0;
     return res.json({ allowed });
   } catch (err) {
