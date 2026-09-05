@@ -66,26 +66,9 @@
   <tr><td><code>emailaddress</code></td><td>User's email address</td></tr>
 </table>
 
-<h3>Optional — only if AD-group based role assignment is wanted</h3>
-<table>
-  <tr><th>Attribute</th><th>Description</th></tr>
-  <tr><td><code>memberOf</code> / <code>groups</code></td><td>AD group membership, used to auto-assign the LMS role (instructor / manager / sysadmin). If not sent, every new SSO user defaults to the <code>learner</code> role and roles are assigned manually inside LMS afterward.</td></tr>
-</table>
-
 <h2>3. LMS login/role logic (for reference)</h2>
 <pre>Valid AD user, existing LMS account    -&gt; logs in, keeps current LMS role
 Valid AD user, no existing LMS account -&gt; rejected ("Invalid username or password")</pre>
-<p>
-  This mirrors the same model already used for ERP: the username is created in the target
-  application (LMS) first, using the same username as AD/miniOrange, and only a user that
-  already exists there is allowed to log in. LMS does not create new accounts on its own from an
-  AD login alone — the sysadmin creates the LMS account (Employee ID = AD username) ahead of the
-  employee's first SSO attempt.
-</p>
-<div class="note">
-  AD/miniOrange remains the only party that checks the password; LMS only checks that the
-  username already exists in its own records.
-</div>
 
 </body>
 </html>

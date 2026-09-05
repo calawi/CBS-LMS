@@ -48,26 +48,9 @@ names already used for other existing CBS SAML integrations:
 | `givenname` | User's AD login ID (e.g. `abdirahman.hanafi`) |
 | `emailaddress` | User's email address |
 
-### Optional — only if AD-group based role assignment is wanted
-
-| Attribute | Description |
-|---|---|
-| `memberOf` / `groups` | AD group membership, used to auto-assign the LMS role (instructor / manager / sysadmin). If this is not sent, every new SSO user defaults to the `learner` role and roles are assigned manually inside LMS afterward. |
-
 ## 3. LMS login/role logic (for reference)
 
 ```
 Valid AD user, existing LMS account    -> logs in, keeps current LMS role
 Valid AD user, no existing LMS account -> rejected ("Invalid username or password")
 ```
-
-This mirrors the same model already used for ERP: the username is created in the target
-application (LMS) first, using the same username as AD/miniOrange, and only a user that already
-exists there is allowed to log in. LMS does not create new accounts on its own from an AD login
-alone — the sysadmin creates the LMS account (Employee ID = AD username) ahead of the employee's
-first SSO attempt. AD/miniOrange remains the only party that checks the password; LMS only
-checks that the username already exists in its own records.
-
-No pre-authentication or pre-check API call is required from miniOrange for this flow — standard
-SAML (AD + MFA handled entirely by miniOrange, then a signed response sent to the ACS URL below)
-is sufficient.

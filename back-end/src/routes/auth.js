@@ -19,6 +19,20 @@ const getJwtSecret = () => {
   return secret;
 };
 
+// Local (email/password) login is disabled once AD/SSO is live - every login must go through
+// miniOrange (AD credentials + OTP), no exceptions. Kept behind an env flag rather than deleted
+// so it can be switched back on quickly (e.g. LOCAL_LOGIN_ENABLED=true) if miniOrange is ever
+// unavailable and CBS needs a break-glass path, the same way T24's contingency plan works.
+const isLocalLoginEnabled = () =>
+  ["1", "true", "yes", "on"].includes(String(process.env.LOCAL_LOGIN_ENABLED ?? "true").trim().toLowerCase());
+
+const requireLocalLoginEnabled = (req, res, next) => {
+  if (!isLocalLoginEnabled()) {
+    return res.status(403).json({ error: "Local sign-in is disabled. Please use Login with AD / SSO." });
+  }
+  next();
+};
+
 const getUserRoles = async (userId) => {
   const [userRows] = await pool.query("SELECT role FROM users WHERE id = ? LIMIT 1", [userId]);
   const userRoleRaw = userRows?.[0]?.role;
@@ -117,7 +131,7 @@ const findUserForLogin = async (identifierRaw) => {
   }
 };
 
-authRouter.post("/register", async (req, res) => {
+authRouter.post("/register", requireLocalLoginEnabled, async (req, res) => {
   try {
     const { email, password, full_name } = req.body || {};
     if (!email || !password || !full_name) {
@@ -150,7 +164,7 @@ authRouter.post("/register", async (req, res) => {
   }
 });
 
-authRouter.post("/login", async (req, res) => {
+authRouter.post("/login", requireLocalLoginEnabled, async (req, res) => {
   try {
     const { email, password, mfa_code } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: "email and password are required" });
@@ -180,7 +194,7 @@ authRouter.post("/login", async (req, res) => {
   }
 });
 
-authRouter.post("/login/mfa", async (req, res) => {
+authRouter.post("/login/mfa", requireLocalLoginEnabled, async (req, res) => {
   try {
     const { mfa_token, mfa_code } = req.body || {};
     if (!mfa_token || !mfa_code) {
