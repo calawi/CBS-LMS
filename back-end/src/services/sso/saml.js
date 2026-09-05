@@ -70,6 +70,12 @@ export const getSamlConfig = () => {
     identifierFormat: process.env.SAML_NAME_ID_FORMAT || "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
     acceptedClockSkewMs: Number(process.env.SAML_ACCEPTED_CLOCK_SKEW_MS || 300000),
     disableRequestedAuthnContext: true,
+    // miniOrange signs the <Response> element, not the <Assertion> individually - the library
+    // defaults to requiring an assertion-level signature (DEFAULT_WANT_ASSERTIONS_SIGNED = true
+    // in @node-saml/node-saml), which fails with a generic "Invalid signature" even though the
+    // actual Response signature is valid. The Response signature already covers the assertion
+    // content, so this is a legitimate configuration, not a security downgrade.
+    wantAssertionsSigned: false,
   };
 };
 
