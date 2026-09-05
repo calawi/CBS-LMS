@@ -14,6 +14,7 @@ import LmsSettings from "./pages/LmsSettings";
 import CourseDetail from "./pages/CourseDetail";
 import AdminPanel from "./pages/AdminPanel";
 import Auth from "./pages/Auth";
+import LocalLogin from "./pages/LocalLogin";
 import SsoCallback from "./pages/SsoCallback";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -39,6 +40,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/local-login" element={<LocalLogin />} />
               <Route path="/auth/forgot" element={<ForgotPassword />} />
               <Route path="/auth/reset" element={<ResetPassword />} />
               <Route path="/sso/callback" element={<SsoCallback />} />
