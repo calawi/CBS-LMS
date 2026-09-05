@@ -135,8 +135,8 @@ const LocalLogin = () => {
                     autoComplete={isLogin ? "username" : "email"}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={isLogin ? "Username or Email" : "Email"}
-                    aria-label={isLogin ? "Username or Email" : "Email"}
+                    placeholder={isLogin ? "Username" : "Email"}
+                    aria-label={isLogin ? "Username" : "Email"}
                     required
                     className="h-12 rounded-md border-0 bg-[#e8eef8] px-4 text-[#222]"
                   />
