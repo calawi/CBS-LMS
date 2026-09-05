@@ -143,7 +143,11 @@ export const getSamlProfile = (profile = {}) => {
     profile.samaccountname,
     profile["sAMAccountName"],
     profile["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
-    rawNameId,
+    // miniOrange's real response today sends the full email address as NameID (no separate
+    // sAMAccountName/login-name attribute) - using it whole here would make `username` equal
+    // "name@centralbank.gov.so" instead of "name", which can never match users.username. Only
+    // use rawNameId as-is when it's NOT email-shaped; otherwise prefer the email's local part.
+    looksLikeEmail(rawNameId) ? "" : rawNameId,
     email ? email.split("@")[0] : "",
   ));
 
