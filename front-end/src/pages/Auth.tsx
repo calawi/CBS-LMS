@@ -50,6 +50,16 @@ const Auth = () => {
     window.location.href = `${API_URL}/api/auth/sso/login`;
   };
 
+  useEffect(() => {
+    // Auto-redirect straight to miniOrange on load, same as suptech.centralbank.gov.so does -
+    // no click needed for a normal, first-time visit. Skip this if a failed-SSO error just
+    // routed us into the local fallback form above (the other effect handles that case).
+    if (mode === "sso" && !searchParams.get("error")) {
+      goToSso();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
