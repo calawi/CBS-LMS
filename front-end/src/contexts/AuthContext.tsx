@@ -220,8 +220,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    setToken(null);
-    setUser(null);
+    // Deliberately NOT calling setToken(null)/setUser(null) here. This function always ends in a
+    // full page redirect below, so updating React state first is not just unnecessary - it's
+    // actively harmful: it re-renders the still-mounted page, and if it's wrapped in
+    // ProtectedRoute/RoleRoute, that component reacts to `user` becoming null with its own
+    // client-side <Navigate to="/auth">, which can win the race against the redirect below (a
+    // window.location.href assignment isn't instant) and hijack it to /auth's own SSO
+    // auto-redirect - confirmed live in production: local-account sign-out was landing on
+    // miniOrange instead of /local-login because of exactly this race. Clearing localStorage
+    // alone is sufficient, since that's what the next page load actually reads.
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
 
