@@ -51,8 +51,12 @@ const Auth = () => {
       goToSsoRetry();
     }, 1500);
     return () => window.clearTimeout(timer);
+    // Runs once on mount only - it must NOT depend on searchParams, since setSearchParams above
+    // changes it, which would re-run this effect immediately with error now stripped, hitting
+    // the "fresh visit" branch and firing goToSso() (no forceAuthn) well before the 1.5s delay.
+    // That's a silent-reuse-then-reject loop, not the intended forceAuthn retry.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-[#eef0f6] px-4 pt-16 sm:pt-20">
