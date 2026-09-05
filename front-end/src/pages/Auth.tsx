@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -228,46 +228,6 @@ const Auth = () => {
                     </Button>
                   </div>
                 </form>
-                {!needsMfa && (
-                  <div className="mt-5 space-y-2 text-center">
-                    {isLogin ? (
-                      <>
-                        <div>
-                          <Link to="/auth/forgot" className="text-[12px] text-[#7f8a99] hover:underline">
-                            Forgot password?
-                          </Link>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setIsLogin(false)}
-                          className="text-[12px] text-[#7f8a99] hover:underline"
-                        >
-                          Need an account? Register
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setIsLogin(true)}
-                        className="text-[12px] text-[#7f8a99] hover:underline"
-                      >
-                        Already have an account? Sign in
-                      </button>
-                    )}
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMode("sso");
-                          resetMfa();
-                        }}
-                        className="text-[12px] text-[#7f8a99] hover:underline"
-                      >
-                        Back to AD / SSO sign in
-                      </button>
-                    </div>
-                  </div>
-                )}
               </>
             )}
           </CardContent>
